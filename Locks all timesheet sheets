@@ -1,0 +1,28 @@
+function lockAllSheets() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = spreadsheet.getSheets();
+
+  for (var i = 0; i < sheets.length; i++) {
+    var sheet = sheets[i];
+    var sheetName = sheet.getName();
+    
+    // Check if sheet name does not start with "**"
+    if (!sheetName.startsWith("**")) {
+      lockSheet(sheet);
+    }
+  }
+}
+
+function lockSheet(sheet) {
+  var usersSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("**User Emails");
+  var userEmails = usersSheet.getRange('A1:A20');
+  var emailValues = userEmails.getValues();
+  var signature = sheet.getRange('M6:O6');
+  var date = sheet.getRange('V6:X6');
+  var name = sheet.getRange('M2:O2');
+
+  var protection = sheet.protect();
+  var unprotectedRanges = [signature, date, name];
+  protection.setUnprotectedRanges(unprotectedRanges);
+  protection.removeEditors(emailValues); // Remove all editors
+}
