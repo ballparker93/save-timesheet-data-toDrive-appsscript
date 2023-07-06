@@ -1,0 +1,34 @@
+function reminderEmail() {
+  var payrollTotalsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("**Payroll Totals");
+  var signedYesOrNoRange = payrollTotalsSheet.getRange('AK27:AK67');
+  var signedYesOrNoValues = signedYesOrNoRange.getValues();
+  var staffNamesRange = payrollTotalsSheet.getRange('V27:V67');
+  var staffNamesValues = staffNamesRange.getValues();
+  var sendNumRange = payrollTotalsSheet.getRange('AJ9');
+  var sendNumValue = sendNumRange.getValue();
+  var directorEmailRange = payrollTotalsSheet.getRange('AG9');
+  var directorEmailValue = directorEmailRange.getValue();
+  var adminEmail = "admin@alliessupportedemployment.com";
+  var haydenEmail = "haydenj@alliessupportedemployment.com";
+  var albertEmail = "jscola@alliessupportedemployment.com";
+
+  if(sendNumValue === 1){
+
+  // Filter the staff names based on the corresponding signedYesOrNoValues
+  var staffNamesNeedingSignature = staffNamesValues.filter(function(value, index) {
+    return signedYesOrNoValues[index][0] === false;
+  });
+
+  if (staffNamesNeedingSignature.length > 0) {
+    // Email template to recipients
+    var message = {
+      to: directorEmailValue + "," + adminEmail + "," + haydenEmail + "," + albertEmail,
+      subject: "STAFF STILL NEEDING TIMESHEETS SIGNED!",
+      body: "Hello, \n\nThe following is a list of ASE staff that are yet to have their time approved by a supervisor. Time should be approved by the Tuesday before payroll by at least 5 PM. Please ensure that these timesheets are approved before then.\n\n" + staffNamesNeedingSignature.join('\n') + "\n\nThank you,",
+      name: "ASE Management Team"
+    };
+
+    MailApp.sendEmail(message);
+    }
+  }
+}
