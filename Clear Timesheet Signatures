@@ -1,0 +1,24 @@
+function ClearSignatures() {
+
+  var targetSheetName = "**Staff Roster & Period Dates";
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName(targetSheetName);
+
+  if (!sheet) {
+    Logger.log("Sheet '" + targetSheetName + "' not found.");
+    return;
+  }
+
+  var namesRange = sheet.getRange("A2:A100");
+  var names = namesRange.getValues();
+
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i][0];
+    var targetSheet = spreadsheet.getSheetByName(name);
+
+    if (targetSheet) {
+      targetSheet.getRange('M6').setValue('');
+      targetSheet.getRange('V6').setValue('');
+    }
+  }
+}
