@@ -1,0 +1,77 @@
+function saveSheetsByNameAsPDF() {
+  var templateSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("**Template");
+  var payrollTotalsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("**Payroll Totals");
+  var payDate = templateSheet.getRange('AB6');
+  var approvalDate = payrollTotalsSheet.getRange('AG8');
+  var oneOrTwo = payrollTotalsSheet.getRange('AJ8');
+  var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "mm-dd-yyyy");
+  var now = payDate.getValue();
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var folderId = "1ie-GW0fUcKex7rp5OxbehWkzSjWaaniY"; 
+  var folder = DriveApp.getFolderById(folderId);
+
+//oneOrTwo is the value in the cell. It is 1 if it falls on the same day the script is running, it is blank "" if it does not. So the script is basically pulling that cell value and if it is 1, it is running, if not null. 
+  if (oneOrTwo.getValue() === 1) {
+
+    var mySubFolderId = folder.createFolder("Pay Date: " + now);
+    var targetSheetName = "**Staff Roster & Period Dates";
+    var sheet = spreadsheet.getSheetByName(targetSheetName);
+
+    if (!sheet) {
+      Logger.log("Sheet '" + targetSheetName + "' not found.");
+      return;
+    }
+
+    var namesRange = sheet.getRange("A2:A100");
+    var names = namesRange.getValues();
+
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i][0];
+      if (name !== "") {
+        var targetSheet = spreadsheet.getSheetByName(name);
+        if (targetSheet) {
+          var sheetId = targetSheet.getSheetId();
+          var spreadsheetId = targetSheet.getParent().getId();
+          var url =
+            "https://docs.google.com/spreadsheets/d/" +
+            spreadsheetId +
+            "/export?format=pdf&gid=" +
+            sheetId;
+          var token = ScriptApp.getOAuthToken();
+
+          var options = {
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+            muteHttpExceptions: true,
+          };
+
+          var response = UrlFetchApp.fetch(url, options);
+          Utilities.sleep(10000); // Delay for 10 seconds
+
+          if (response.getResponseCode() == 200) {
+            var blob = response.getBlob();
+            var fileName =
+              targetSheet.getRange("M2").getValue() +
+              " " +
+              targetSheet.getRange("V2").getValue() +
+              " " +
+              "Pay Date " +
+              targetSheet.getRange("AB6").getValue() +
+              ".pdf";
+            blob.setName(fileName);
+
+            mySubFolderId.createFile(blob);
+          } else {
+            // Handle error response
+            var fullResponse = response.getContentText();
+            Logger.log(fullResponse); // Output the full server response to the logs
+          }
+        }
+      }
+    }
+  } else {
+    // the condition is not satisfied for the if statement logs it out below
+    Logger.log("The condition that the approval date is equal to today is not satisfied.");
+ }
+}
